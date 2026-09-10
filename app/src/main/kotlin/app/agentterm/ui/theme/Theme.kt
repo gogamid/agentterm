@@ -22,8 +22,8 @@ val TextSecondary = Color(0xFF8B93A5)
 val Danger = Color(0xFFEF4444)
 val Ok = Color(0xFF22C55E)
 
-val TerminalDefaultFg = 0xFFE6E8EE
-val TerminalDefaultBg = 0xFF0E0F13
+val TerminalDefaultFg: Int = 0xFFE6E8EE.toInt()
+val TerminalDefaultBg: Int = 0xFF0E0F13.toInt()
 
 private val DarkColors = darkColorScheme(
     primary = Accent,
