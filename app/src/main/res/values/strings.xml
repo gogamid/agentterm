@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AgentTerm</string>
+    <string name="home_title">AgentTerm</string>
+    <string name="home_subtitle">terminal for AI agents</string>
+</resources>

@@ -1,0 +1,12 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+.DS_Store
+*.apk
+!gradle/wrapper/gradle-wrapper.jar
+pkg-install.log
+node_modules/core-test.log
