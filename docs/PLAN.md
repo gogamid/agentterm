@@ -42,9 +42,14 @@ A gesture-configurable, agent-native Android terminal:
 - [ ] Release APK signing (roadmap)
 
 ## Delegation log
-- **subagent A** (spawned): README/docs/PLAN/SPEC drafts — status: in flight
-- **subagent B** (spawned): Settings / Gesture settings / Shortcuts screens —
-  status: delivered (4 files, ~1060 LOC), reviewed, compile-checked via CI
+- **subagent A** (pi -p): README/docs/PLAN/SPEC drafts — status: **hung after
+  40 min with no output; killed; deliverables written by the planner instead**
+  (workflow build.yml, README.md, docs/PLAN.md, docs/SPEC.md)
+- **subagent B** (pi -p): Settings / Gesture settings / Shortcuts screens —
+  status: **delivered** (4 files, ~1060 LOC); reviewed; one hallucinated import
+  (`androidx.lifecycle.compose.collectAsState`) caught by CI and fixed
+- CI (GitHub Actions) acts as the continuous integration subagent: catches
+  compile errors across 3 iterations; final run green; APK released v0.1.0-mvp
 
 ## Moshi parity matrix
 | Feature | Moshi | AgentTerm MVP | Status |
