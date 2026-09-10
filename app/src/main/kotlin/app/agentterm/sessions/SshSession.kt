@@ -6,9 +6,9 @@ import app.agentterm.ssh.AuthType
 import app.agentterm.ssh.SavedConnection
 import app.agentterm.ssh.SecureStore
 import net.schmizz.sshj.SSHClient
+import net.schmizz.sshj.connection.channel.direct.Session
 import net.schmizz.sshj.transport.verification.HostKeyVerifier
-import net.schmizz.sshj.userauth.method.AuthPassword
-import net.schmizz.sshj.userauth.method.AuthPublickey
+import net.schmizz.sshj.userauth.keyprovider.OpenSSHKeyFile
 import java.io.File
 import java.security.PublicKey
 import java.util.concurrent.atomic.AtomicBoolean
@@ -26,13 +26,14 @@ class SshSession(
     private val conn: SavedConnection,
 ) : TerminalSession(cols, rows) {
 
+    private val appContext = context.applicationContext
     private val secureStore = SecureStore()
     private val closed = AtomicBoolean(false)
     private var client: SSHClient? = null
     private var shellOut: java.io.OutputStream? = null
     val isRunning: Boolean get() = !closed.get()
 
-    /** Runs on a background thread; posts output via [onOutputReady]. */
+    /** Runs on a background thread; errors surface via [onError]. */
     fun connect(onError: (String) -> Unit = {}) {
         Thread {
             try {
@@ -40,29 +41,31 @@ class SshSession(
                 client = c
                 // MVP: accept-all host key verification with visual indicator; TOFU is roadmap.
                 c.addHostKeyVerifier(object : HostKeyVerifier {
-                    override fun verify(hostname: String, port: Int, key: PublicKey): Boolean = true
+                    override fun verify(hostname: String?, port: Int, key: PublicKey?): Boolean = true
+                    override fun findExistingAlgorithms(hostname: String?, port: Int): List<String> = emptyList()
                 })
                 c.connect(conn.host, conn.port)
                 when (conn.authType) {
                     AuthType.PASSWORD -> {
                         val pass = secureStore.decrypt(conn.secretRef)
                             ?: throw SshConnectException("Saved password unavailable")
-                        c.auth(conn.username, AuthPassword(pass))
+                        c.authPassword(conn.username, pass)
                     }
                     AuthType.KEY -> {
                         val keyPem = secureStore.decrypt(conn.secretRef)
                             ?: throw SshConnectException("Saved key unavailable")
-                        val keyFile = File(context.cacheDir, "key_${conn.id}.pem")
+                        val keyFile = File(appContext.cacheDir, "key_${conn.id}.pem")
                         keyFile.writeText(keyPem)
                         keyFile.setReadable(true, true)
-                        c.auth(conn.username, AuthPublickey(keyFile))
+                        val kp = OpenSSHKeyFile()
+                        kp.init(keyFile, null)
+                        c.authPublickey(conn.username, kp)
                         keyFile.delete()
                     }
                 }
 
                 val session = c.startSession()
-                session.allocatePTY("xterm-256color", screen.columns, screen.rows, 0, 0)
-                session.allowAgentForwarding() // key already on host; harmless no-op if unsupported
+                session.allocatePTY("xterm-256color", screen.columns, screen.rows, 0, 0, emptyMap())
                 val shell = session.startShell()
                 shellOut = shell.outputStream
 
@@ -89,11 +92,11 @@ class SshSession(
         }
     }
 
-    /** Quick probe of tmux/herdr presence; filled before terminal opens. */
+    /** Quick probe of tmux/herdr/zellij presence + running tmux sessions. */
     val multiplexers = ArrayList<String>()
 
     private fun probeMultiplexers(c: SSHClient) {
-        val sess = c.startSession()
+        val sess: Session = c.startSession()
         val cmd = sess.exec(
             "export PATH=\$PATH:/usr/local/bin:/opt/homebrew/bin;" +
                 "for x in tmux herdr zellij; do command -v \$x >/dev/null 2>&1 && echo \$x; done;" +
@@ -111,8 +114,7 @@ class SshSession(
     }
 
     override fun onResize(cols: Int, rows: Int) {
-        // sshj sends window-change on next write via the pty; pattern used by
-        // other clients: send SIGWINCH by re-allocating pty — kept simple for MVP.
+        // MVP: sshj window-change on next write; full PTY resize is roadmap.
     }
 
     override fun close() {

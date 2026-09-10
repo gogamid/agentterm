@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsState
+import androidx.compose.runtime.collectAsState
 import app.agentterm.App
 import app.agentterm.ui.theme.Accent
 import app.agentterm.ui.theme.Bg

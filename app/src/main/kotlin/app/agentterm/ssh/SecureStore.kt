@@ -40,13 +40,15 @@ class SecureStore {
         return Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + ":" + Base64.encodeToString(ct, Base64.NO_WRAP)
     }
 
-    fun decrypt(blob: String): String? = try {
-        val parts = blob.split(":")
-        if (parts.size != 2) return null
-        val iv = Base64.decode(parts[0], Base64.NO_WRAP)
-        val ct = Base64.decode(parts[1], Base64.NO_WRAP)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
-        String(cipher.doFinal(ct), Charsets.UTF_8)
-    } catch (e: Exception) { null }
+    fun decrypt(blob: String): String? {
+        return try {
+            val parts = blob.split(":")
+            if (parts.size != 2) return null
+            val iv = Base64.decode(parts[0], Base64.NO_WRAP)
+            val ct = Base64.decode(parts[1], Base64.NO_WRAP)
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
+            String(cipher.doFinal(ct), Charsets.UTF_8)
+        } catch (e: Exception) { null }
+    }
 }

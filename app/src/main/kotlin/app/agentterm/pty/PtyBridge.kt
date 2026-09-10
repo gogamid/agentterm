@@ -10,4 +10,6 @@ object PtyBridge {
     external fun nativeOpen(shell: String, argv: Array<String>, envp: Array<String>, cols: Int, rows: Int): Int
     external fun nativeSetSize(fd: Int, cols: Int, rows: Int)
     external fun nativeClose(fd: Int)
+    external fun nativeRead(fd: Int, buf: ByteArray, off: Int, len: Int): Int
+    external fun nativeWrite(fd: Int, buf: ByteArray, off: Int, len: Int): Int
 }

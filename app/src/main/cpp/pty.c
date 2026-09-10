@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 static char** string_array(JNIEnv* env, jobjectArray arr) {
     if (arr == NULL) return NULL;
@@ -74,10 +75,38 @@ static void native_set_size(JNIEnv* env, jclass clazz, jint fd, jint cols, jint 
 
 static void native_close(JNIEnv* env, jclass clazz, jint fd) { close(fd); }
 
+static jint native_read(JNIEnv* env, jclass clazz, jint fd, jbyteArray buf, jint off, jint len) {
+    jbyte* data = (*env)->GetByteArrayElements(env, buf, NULL);
+    if (data == NULL) return -1;
+    ssize_t n;
+    do { n = read(fd, data + off, (size_t)len); } while (n < 0 && errno == EINTR);
+    (*env)->ReleaseByteArrayElements(env, buf, data, 0);
+    return (jint)n;
+}
+
+static jint native_write(JNIEnv* env, jclass clazz, jint fd, jbyteArray buf, jint off, jint len) {
+    jbyte* data = (*env)->GetByteArrayElements(env, buf, NULL);
+    if (data == NULL) return -1;
+    ssize_t n;
+    size_t total = 0;
+    while (total < (size_t)len) {
+        n = write(fd, data + off + total, (size_t)(len - total));
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            break;
+        }
+        total += (size_t)n;
+    }
+    (*env)->ReleaseByteArrayElements(env, buf, data, 0);
+    return (jint)total;
+}
+
 static const JNINativeMethod kMethods[] = {
     { "nativeOpen", "(Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;II)I", (void*)native_open },
     { "nativeSetSize", "(III)V", (void*)native_set_size },
     { "nativeClose", "(I)V", (void*)native_close },
+    { "nativeRead", "(I[BII)I", (void*)native_read },
+    { "nativeWrite", "(I[BII)I", (void*)native_write },
 };
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {

@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsState
+import androidx.compose.runtime.collectAsState
 import app.agentterm.App
 import app.agentterm.core.config.SavedShortcut
 import app.agentterm.ui.theme.Accent

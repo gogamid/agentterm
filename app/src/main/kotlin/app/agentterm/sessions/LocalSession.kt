@@ -1,8 +1,6 @@
 package app.agentterm.sessions
 
 import android.content.Context
-import android.system.ErrnoException
-import android.system.Os
 import app.agentterm.core.terminal.TerminalSession
 import app.agentterm.pty.PtyBridge
 import java.util.concurrent.atomic.AtomicBoolean
@@ -53,15 +51,9 @@ class LocalSession(
     private fun readLoop() {
         val buf = ByteArray(16384)
         while (!closed.get()) {
-            try {
-                val n = Os.read(fd, buf, 0, buf.size)
-                if (n <= 0) break
-                feed(buf.copyOfRange(0, n))
-            } catch (e: ErrnoException) {
-                break
-            } catch (e: Exception) {
-                break
-            }
+            val n = PtyBridge.nativeRead(fd, buf, 0, buf.size)
+            if (n <= 0) break
+            feed(buf.copyOfRange(0, n))
         }
         if (!closed.getAndSet(true)) {
             feed("\r\n[process exited]\r\n".toByteArray())
@@ -71,7 +63,7 @@ class LocalSession(
 
     override fun write(bytes: ByteArray) {
         if (closed.get() || fd < 0) return
-        try { Os.write(fd, bytes, 0, bytes.size) } catch (_: Exception) {}
+        try { PtyBridge.nativeWrite(fd, bytes, 0, bytes.size) } catch (_: Exception) {}
     }
 
     override fun onResize(cols: Int, rows: Int) {

@@ -38,6 +38,8 @@ import app.agentterm.App
 import app.agentterm.ssh.AuthType
 import app.agentterm.ssh.SavedConnection
 import app.agentterm.ssh.SecureStore
+import app.agentterm.ui.theme.Panel
+import app.agentterm.ui.theme.TextSecondary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -104,7 +106,10 @@ fun ConnectionEditor(connectionId: String?, onDone: () -> Unit) {
             val ok = withContext(Dispatchers.IO) {
                 try {
                     val c = SSHClient()
-                    c.addHostKeyVerifier { _, _, _ -> true }
+                    c.addHostKeyVerifier(object : net.schmizz.sshj.transport.verification.HostKeyVerifier {
+                        override fun verify(hostname: String?, port: Int, key: java.security.PublicKey?): Boolean = true
+                        override fun findExistingAlgorithms(hostname: String?, port: Int): List<String> = emptyList()
+                    })
                     c.connect(host.trim(), port.toIntOrNull() ?: 22)
                     val decrypted = if (authType == AuthType.PASSWORD) password
                     else keyLabel // raw key text stored in password var
@@ -114,7 +119,7 @@ fun ConnectionEditor(connectionId: String?, onDone: () -> Unit) {
                         } else {
                             val f = java.io.File(app.cacheDir, "tmp_key.pem")
                             f.writeText(decrypted); f.setReadable(true, true)
-                            c.authPublickey(user.trim(), f)
+                            c.authPublickey(user.trim(), f.absolutePath)
                             f.delete(); true
                         }
                     c.disconnect()
@@ -168,7 +173,7 @@ fun ConnectionEditor(connectionId: String?, onDone: () -> Unit) {
                 item {
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = app.agentterm.ui.theme.Panel),
+                        colors = CardDefaults.cardColors(containerColor = Panel),
                         modifier = Modifier.fillMaxWidth().clickable { filePicker.launch(arrayOf("text/*", "application/x-pem-file", "application/octet-stream")) }
                     ) {
                         Column(Modifier.padding(14.dp)) {
@@ -177,7 +182,7 @@ fun ConnectionEditor(connectionId: String?, onDone: () -> Unit) {
                             Text(
                                 keyLabel.ifBlank { "OpenSSH or PEM format; stored encrypted in the Android Keystore" },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = app.agentterm.ui.theme.TextSecondary,
+                                color = TextSecondary,
                             )
                         }
                     }
@@ -196,7 +201,7 @@ fun ConnectionEditor(connectionId: String?, onDone: () -> Unit) {
                 Text(
                     "Secrets are encrypted with an Android Keystore key and never stored in plain text. Host/port/user metadata is stored locally as JSON.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = app.agentterm.ui.theme.TextSecondary,
+                    color = TextSecondary,
                 )
             }
         }

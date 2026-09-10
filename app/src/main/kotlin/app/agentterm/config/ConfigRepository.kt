@@ -2,6 +2,7 @@ package app.agentterm.config
 
 import android.content.Context
 import app.agentterm.core.config.AppConfig
+import app.agentterm.core.config.SavedShortcut
 import app.agentterm.core.config.ConfigCodec
 import app.agentterm.core.gestures.Gesture
 import app.agentterm.core.gestures.GestureAction
