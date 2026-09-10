@@ -57,6 +57,7 @@ import app.agentterm.core.gestures.GestureAction
 import app.agentterm.sessions.SessionHandle
 import app.agentterm.sessions.SshSession
 import app.agentterm.ui.theme.Accent
+import app.agentterm.ui.theme.Bg
 import app.agentterm.ui.theme.Border
 import app.agentterm.ui.theme.Danger
 import app.agentterm.ui.theme.Panel
@@ -131,7 +132,7 @@ fun TerminalScreen(
     }
     LaunchedEffect(fontScale) { terminalView.fontScale = fontScale }
 
-    Box(Modifier.fillMaxSize().background(app.agentterm.ui.theme.Bg)) {
+    Box(Modifier.fillMaxSize().background(Bg)) {
         Column(Modifier.fillMaxSize()) {
             // Header with pull-down gestures
             TerminalHeader(

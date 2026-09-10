@@ -10,6 +10,7 @@ import app.agentterm.core.config.AppConfig
 import app.agentterm.core.gestures.GestureAction
 import app.agentterm.core.gestures.GestureBinding
 import app.agentterm.core.config.bytes
+import app.agentterm.core.config.shortcutById
 import app.agentterm.core.terminal.TerminalSession
 
 /** Dispatches a resolved gesture binding onto the current session/UI. */
