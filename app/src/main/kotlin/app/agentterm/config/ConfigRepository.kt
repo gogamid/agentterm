@@ -7,7 +7,6 @@ import app.agentterm.core.config.ConfigCodec
 import app.agentterm.core.gestures.Gesture
 import app.agentterm.core.gestures.GestureAction
 import app.agentterm.core.gestures.GestureBinding
-import app.agentterm.core.shortcuts.SavedShortcut
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID

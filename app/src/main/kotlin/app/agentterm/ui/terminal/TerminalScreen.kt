@@ -50,10 +50,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.agentterm.App
+import app.agentterm.core.config.bytes
 import app.agentterm.core.config.gestureMap
 import app.agentterm.core.gestures.Gesture
 import app.agentterm.core.gestures.GestureAction
 import app.agentterm.sessions.SessionHandle
+import app.agentterm.sessions.SshSession
 import app.agentterm.ui.theme.Accent
 import app.agentterm.ui.theme.Border
 import app.agentterm.ui.theme.Danger
@@ -205,7 +207,7 @@ fun TerminalScreen(
         SessionPickerSheet(
             app = app,
             currentId = handle.id,
-            multiplexers = (handle.session as? app.agentterm.sessions.SshSession)?.multiplexers?.toList() ?: emptyList(),
+            multiplexers = (handle.session as? SshSession)?.multiplexers?.toList() ?: emptyList(),
             onSwitch = { id -> app.sessions.setActive(id); pickerVisible = false },
             onAttachItem = { cmd ->
                 session.write("$cmd\n")

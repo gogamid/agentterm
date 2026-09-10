@@ -36,7 +36,7 @@ class TerminalView @JvmOverloads constructor(
         typeface = try {
             android.graphics.Typeface.create(resources.getFont(R.font.jetbrains_mono), Typeface.NORMAL)
         } catch (e: Exception) { Typeface.create("monospace", Typeface.NORMAL) }
-        textSize = 11f * density
+        textSize = 11f * resources.displayMetrics.density
     }
 
     var fontScale: Float = 1f
@@ -66,7 +66,7 @@ class TerminalView @JvmOverloads constructor(
     }
 
     private fun recalcMetrics() {
-        val size = 12f * density * fontScale
+        val size = 12f * resources.displayMetrics.density * fontScale
         textPaint.textSize = size
         val fm = textPaint.fontMetrics
         lineHeight = (fm.descent - fm.ascent) * 1.06f

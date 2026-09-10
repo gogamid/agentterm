@@ -19,7 +19,10 @@ class GestureHost(
 ) : View.OnTouchListener {
 
     private var totalScale = 1f
+    private var pinching = false
     private var twoFinger = false
+    private var prevCX = 0f
+    private var prevCY = 0f
     private var centroidDx = 0f
     private var centroidDy = 0f
     private var lastDblTap = 0L
@@ -40,7 +43,7 @@ class GestureHost(
         }
 
         override fun onFling(e1: MotionEvent?, e2: MotionEvent, vx: Float, vy: Float): Boolean {
-            if (e1 == null || e2 == null) return false
+            if (e1 == null) return false
             val dx = e2.x - e1.x
             val dy = e2.y - e1.y
             val h = view.height
@@ -59,7 +62,8 @@ class GestureHost(
     private val sd = ScaleGestureDetector(view.context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
             totalScale = 1f
-            twoFinger = detector.pointerCount >= 2
+            pinching = true
+            twoFinger = true
             return true
         }
         override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -75,37 +79,29 @@ class GestureHost(
             MotionEvent.ACTION_POINTER_DOWN -> {
                 twoFinger = true
                 centroidDx = 0f; centroidDy = 0f
+                prevCX = (e.getX(0) + e.getX(1)) / 2f
+                prevCY = (e.getY(0) + e.getY(1)) / 2f
             }
             MotionEvent.ACTION_MOVE -> {
-                val cnt = e.pointerCount
-                if (twoFinger && cnt >= 2) {
+                if (twoFinger && e.pointerCount >= 2) {
                     val cx = (e.getX(0) + e.getX(1)) / 2f
                     val cy = (e.getY(0) + e.getY(1)) / 2f
-                    // accumulate centroid movement relative to event history
-                    val hist = e.historySize
-                    if (hist > 0) {
-                        var hx = 0f; var hy = 0f
-                        var n = 0
-                        for (i in 0 until hist) {
-                            if (e.getHistoricalPointerCount(i) < 2) continue
-                            hx += (e.getHistoricalX(0, i) + e.getHistoricalX(1, i)) / 2f
-                            hy += (e.getHistoricalY(0, i) + e.getHistoricalY(1, i)) / 2f
-                            n++
-                        }
-                        if (n > 0) { centroidDx += cx - hx / n; centroidDy += cy - hy / n }
-                    }
+                    centroidDx += cx - prevCX
+                    centroidDy += cy - prevCY
+                    prevCX = cx; prevCY = cy
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 when {
-                    twoFinger && totalScale > 1.14f -> onGesture(Gesture.PINCH_OUT)
-                    twoFinger && totalScale < 0.88f -> onGesture(Gesture.PINCH_IN)
+                    twoFinger && pinching && totalScale > 1.12f -> onGesture(Gesture.PINCH_OUT)
+                    twoFinger && pinching && totalScale < 0.9f -> onGesture(Gesture.PINCH_IN)
                     twoFinger && abs(centroidDx) > abs(centroidDy) && abs(centroidDx) > 80f ->
                         onGesture(if (centroidDx < 0) Gesture.TWO_FINGER_SWIPE_LEFT else Gesture.TWO_FINGER_SWIPE_RIGHT)
                     twoFinger && abs(centroidDy) > 80f ->
                         onGesture(if (centroidDy < 0) Gesture.TWO_FINGER_SWIPE_UP else Gesture.TWO_FINGER_SWIPE_DOWN)
                 }
-                twoFinger = false; totalScale = 1f; centroidDx = 0f; centroidDy = 0f
+                twoFinger = false; pinching = false; totalScale = 1f
+                centroidDx = 0f; centroidDy = 0f
             }
         }
         return true
