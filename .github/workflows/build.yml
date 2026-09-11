@@ -31,10 +31,20 @@ jobs:
           sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1"
           sdkmanager --licenses >/dev/null 2>&1 || true
 
+      - name: Materialize signing keystore
+        if: env.AGENTTERM_KEYSTORE_B64 != ''
+        env:
+          AGENTTERM_KEYSTORE_B64: ${{ secrets.AGENTTERM_KEYSTORE_B64 }}
+        run: echo "$AGENTTERM_KEYSTORE_B64" | base64 --decode > agentterm.jks
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build
+        env:
+          AGENTTERM_KEYSTORE_PATH: ${{ github.workspace }}/agentterm.jks
+          AGENTTERM_KEYSTORE_PASS: ${{ secrets.AGENTTERM_KEYSTORE_PASS }}
+          AGENTTERM_KEY_ALIAS: ${{ secrets.AGENTTERM_KEY_ALIAS }}
         run: ./gradlew :core:test :app:assembleDebug :app:assembleRelease --stacktrace
 
       - name: Upload APK
