@@ -21,17 +21,6 @@ android {
         }
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            val ks = System.getenv("AGENTTERM_KEYSTORE_PATH")
-            if (ks != null) {
-                signingConfig = signingConfigs.getByName("release")
-            }
-        }
-    }
-
     signingConfigs {
         create("release") {
             val path = System.getenv("AGENTTERM_KEYSTORE_PATH")
@@ -40,6 +29,16 @@ android {
                 storePassword = System.getenv("AGENTTERM_KEYSTORE_PASS") ?: ""
                 keyAlias = System.getenv("AGENTTERM_KEY_ALIAS") ?: "agentterm"
                 keyPassword = System.getenv("AGENTTERM_KEYSTORE_PASS") ?: ""
+            }
+        }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            val ks = System.getenv("AGENTTERM_KEYSTORE_PATH")
+            if (ks != null) {
+                signingConfig = signingConfigs.getByName("release")
             }
         }
     }
