@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import app.agentterm.ui.home.ConnectionEditor
@@ -36,9 +37,34 @@ sealed class Screen {
     data class EditConnection(val id: String?) : Screen()
 }
 
+/** rememberSaveable needs a Saver for non-Bundle types or it throws at registration. */
+val ScreenSaver: Saver<Screen, String> = Saver(
+    save = { screen ->
+        when (screen) {
+            Screen.Home -> "home"
+            Screen.Settings -> "settings"
+            Screen.Gestures -> "gestures"
+            Screen.Shortcuts -> "shortcuts"
+            is Screen.Terminal -> "terminal:${screen.sessionId}"
+            is Screen.EditConnection -> "edit:${screen.id ?: ""}"
+        }
+    },
+    restore = { raw ->
+        when {
+            raw == "home" -> Screen.Home
+            raw == "settings" -> Screen.Settings
+            raw == "gestures" -> Screen.Gestures
+            raw == "shortcuts" -> Screen.Shortcuts
+            raw.startsWith("terminal:") -> Screen.Terminal(raw.removePrefix("terminal:"))
+            raw.startsWith("edit:") -> Screen.EditConnection(raw.removePrefix("edit:").ifEmpty { null })
+            else -> Screen.Home
+        }
+    },
+)
+
 @Composable
 fun AppRoot() {
-    var screen by rememberSaveable { mutableStateOf<Screen>(Screen.Home) }
+    var screen by rememberSaveable(stateSaver = ScreenSaver) { mutableStateOf<Screen>(Screen.Home) }
 
     fun go(s: Screen) { screen = s }
 
