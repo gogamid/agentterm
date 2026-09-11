@@ -114,6 +114,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     if ((*vm)->GetEnv(vm, (void**)&env, JNI_VERSION_1_6) != JNI_OK) return JNI_ERR;
     jclass clazz = (*env)->FindClass(env, "app/agentterm/pty/PtyBridge");
     if (clazz == NULL) return JNI_ERR;
-    (*env)->RegisterNatives(env, clazz, kMethods, 3);
+    (*env)->RegisterNatives(env, clazz, kMethods, sizeof(kMethods) / sizeof(kMethods[0]));
     return JNI_VERSION_1_6;
 }

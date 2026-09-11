@@ -45,7 +45,10 @@ class SessionManager(private val context: Context) {
         val h = SessionHandle(id, conn.label, SessionHandle.Kind.SSH, s, {})
         s.onClosed = { remove(id) }
         add(h)
-        s.connect { }
+        s.connect { err ->
+            android.widget.Toast.makeText(context, "SSH: $err", android.widget.Toast.LENGTH_LONG).show()
+            android.util.Log.e("agentterm", "ssh error: $err")
+        }
         return h
     }
 

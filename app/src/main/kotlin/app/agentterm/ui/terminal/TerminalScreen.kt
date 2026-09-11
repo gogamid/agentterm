@@ -2,6 +2,7 @@ package app.agentterm.ui.terminal
 
 import android.view.KeyEvent
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -73,6 +74,7 @@ fun TerminalScreen(
 ) {
     val app = App.instance
     val context = LocalContext.current
+    BackHandler { onBack() }
     val handle = remember(sessionId) { app.sessions.get(sessionId) }
     val session = handle?.session
 
