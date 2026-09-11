@@ -1,6 +1,7 @@
 package app.agentterm
 
 import android.app.Application
+import android.os.Build
 import android.content.Context
 import app.agentterm.config.ConfigRepository
 import app.agentterm.sessions.SessionManager
