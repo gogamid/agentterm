@@ -16,11 +16,29 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // diagnostics FIRST so any crash below is captured
+        installCrashLogger()
+        writeStartMarker()
         instance = this
         config = ConfigRepository(this)
         connections = ConnectionStore(this)
         sessions = SessionManager(this)
-        installCrashLogger()
+    }
+
+    private fun writeStartMarker() {
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val values = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "agentterm-start.log")
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Download/")
+                }
+                val uri = contentResolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                uri?.let { contentResolver.openOutputStream(it)?.use { out ->
+                    out.write(("start ${System.currentTimeMillis()} sdk=${Build.VERSION.SDK_INT}\n").toByteArray())
+                } }
+            }
+        } catch (_: Exception) {}
     }
 
     /** Writes fatal crashes to /Download/agentterm-crash.log via MediaStore (API 29+), */
